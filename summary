@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALOX5–HFpEF 课题研究总结</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #0c0e12;
+  --bg2: #13161c;
+  --bg3: #1a1e27;
+  --border: #252a36;
+  --border2: #2e3547;
+  --text: #dde2ec;
+  --text2: #8e97ae;
+  --text3: #5c6478;
+  --blue: #4f8ef7;
+  --blue-dim: #1e3a6e;
+  --blue-glow: rgba(79,142,247,0.12);
+  --purple: #9b7ff4;
+  --purple-dim: #2d1f5e;
+  --purple-glow: rgba(155,127,244,0.12);
+  --coral: #f07060;
+  --coral-dim: #5a1f18;
+  --coral-glow: rgba(240,112,96,0.12);
+  --amber: #e8a83a;
+  --amber-dim: #4a2f08;
+  --amber-glow: rgba(232,168,58,0.12);
+  --teal: #3abfa8;
+  --teal-dim: #0d3d35;
+  --teal-glow: rgba(58,191,168,0.12);
+  --green: #5cd27a;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Serif SC', 'EB Garamond', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+
+/* ── Noise texture overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .4;
+}
+
+/* ── Layout ── */
+.wrap { max-width: 900px; margin: 0 auto; padding: 60px 32px 100px; position: relative; z-index: 1; }
+
+/* ── Header ── */
+.masthead {
+  display: flex; align-items: flex-start; gap: 20px;
+  border-bottom: 1px solid var(--border2);
+  padding-bottom: 36px; margin-bottom: 52px;
+}
+.masthead-label {
+  display: flex; flex-direction: column; gap: 6px;
+  flex-shrink: 0;
+}
+.label-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--blue); background: var(--blue-dim);
+  border: 1px solid rgba(79,142,247,.3);
+  padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+}
+.label-tag.amber { color: var(--amber); background: var(--amber-dim); border-color: rgba(232,168,58,.3); }
+.masthead-title h1 {
+  font-family: 'EB Garamond', 'Noto Serif SC', serif;
+  font-size: 34px; font-weight: 500; line-height: 1.25;
+  color: #fff; letter-spacing: -.01em;
+  margin-bottom: 10px;
+}
+.masthead-title .subtitle {
+  font-size: 14px; color: var(--text2); font-style: italic;
+}
+
+/* ── Section headings ── */
+.section { margin-bottom: 56px; }
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 24px;
+}
+.sec-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text3); letter-spacing: .1em;
+  flex-shrink: 0; padding-top: 2px;
+}
+.sec-title {
+  font-family: 'EB Garamond', serif;
+  font-size: 22px; font-weight: 500; color: #fff;
+  border-bottom: 1px solid var(--border); padding-bottom: 6px; flex: 1;
+}
+.sec-title span { color: var(--blue); }
+
+/* ── Hypothesis card ── */
+.hypo-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--blue);
+  border-radius: 8px;
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  position: relative; overflow: hidden;
+}
+.hypo-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top left, var(--blue-glow), transparent 60%);
+  pointer-events: none;
+}
+.hypo-card .card-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 14px;
+}
+.hypo-card p {
+  font-size: 17px; line-height: 1.8; color: #eef;
+  font-style: italic;
+}
+
+/* ── Sentence blocks ── */
+.sentence-block {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.sb-header {
+  display: grid;
+  grid-template-columns: 6px 1fr;
+}
+.sb-accent { }
+.sb-title-row {
+  padding: 14px 20px;
+  background: var(--bg2);
+  display: flex; align-items: baseline; gap: 12px;
+}
+.sb-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text3); flex-shrink: 0;
+}
+.sb-sentence {
+  font-size: 15.5px; font-weight: 500; color: #e8ecf8;
+  line-height: 1.55;
+}
+.sb-body {
+  padding: 18px 20px 20px 38px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.sb-col-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.sb-col ul { list-style: none; }
+.sb-col ul li {
+  padding: 4px 0;
+  padding-left: 14px;
+  position: relative;
+  font-size: 13.5px; color: var(--text2); line-height: 1.55;
+}
+.sb-col ul li::before {
+  content: '·';
+  position: absolute; left: 0;
+  color: var(--text3);
+}
+.sb-col ul li strong { color: var(--text); font-weight: 500; }
+.sb-col ul li em { color: var(--teal); font-style: normal; }
+
+/* Color accents per block */
+.blue .sb-accent { background: var(--blue); }
+.blue .sb-title-row { border-left: 3px solid var(--blue); }
+.blue .sb-col-title { color: var(--blue); }
+.purple .sb-accent { background: var(--purple); }
+.purple .sb-title-row { border-left: 3px solid var(--purple); }
+.purple .sb-col-title { color: var(--purple); }
+.coral .sb-accent { background: var(--coral); }
+.coral .sb-title-row { border-left: 3px solid var(--coral); }
+.coral .sb-col-title { color: var(--coral); }
+.amber .sb-accent { background: var(--amber); }
+.amber .sb-title-row { border-left: 3px solid var(--amber); }
+.amber .sb-col-title { color: var(--amber); }
+.teal .sb-accent { background: var(--teal); }
+.teal .sb-title-row { border-left: 3px solid var(--teal); }
+.teal .sb-col-title { color: var(--teal); }
+
+/* ── Phase pipeline ── */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin-bottom: 32px;
+  border-radius: 10px; overflow: hidden;
+}
+.phase-card {
+  padding: 20px 16px;
+  background: var(--bg2);
+  position: relative;
+}
+.phase-card::after {
+  content: '→';
+  position: absolute; right: -10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3); font-size: 16px; z-index: 2;
+}
+.phase-card:last-child::after { display: none; }
+.phase-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.phase-name {
+  font-size: 13px; font-weight: 500; color: #fff;
+  margin-bottom: 8px; line-height: 1.3;
+}
+.phase-desc { font-size: 11.5px; color: var(--text2); line-height: 1.5; }
+.phase-card.p1 { border-top: 2px solid var(--blue); }
+.phase-card.p1 .phase-num { color: var(--blue); }
+.phase-card.p2 { border-top: 2px solid var(--purple); }
+.phase-card.p2 .phase-num { color: var(--purple); }
+.phase-card.p3 { border-top: 2px solid var(--coral); }
+.phase-card.p3 .phase-num { color: var(--coral); }
+.phase-card.p4 { border-top: 2px solid var(--amber); }
+.phase-card.p4 .phase-num { color: var(--amber); }
+
+/* ── Contradiction box ── */
+.contradiction {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--coral);
+  border-radius: 8px;
+  padding: 22px 26px;
+  margin-bottom: 20px;
+}
+.contradiction .c-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--coral); margin-bottom: 10px;
+}
+.contradiction .c-q {
+  font-size: 14.5px; color: #f8c0b8; margin-bottom: 14px;
+  font-style: italic;
+}
+.contra-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.contra-item {
+  background: var(--bg3); border-radius: 6px;
+  padding: 14px 16px;
+}
+.contra-item .ci-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .1em; color: var(--text3);
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.contra-item p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.contra-item p strong { color: var(--text); }
+
+/* ── Plan table ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  padding: 10px 12px; text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text3);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border2);
+}
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2); vertical-align: top; line-height: 1.6;
+}
+tr:last-child td { border-bottom: none; }
+td strong { color: var(--text); font-weight: 500; }
+.priority-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .06em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 3px;
+  white-space: nowrap;
+}
+.p-now { background: rgba(92,210,122,.12); color: var(--green); border: 1px solid rgba(92,210,122,.25); }
+.p-q2 { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(79,142,247,.25); }
+.p-q3 { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(155,127,244,.25); }
+.p-q4 { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(232,168,58,.25); }
+
+/* ── Mini tags ── */
+.mini-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .05em;
+  padding: 1px 5px; border-radius: 3px; margin: 1px 2px 1px 0;
+}
+.t-blue { background: var(--blue-dim); color: var(--blue); }
+.t-coral { background: var(--coral-dim); color: var(--coral); }
+.t-amber { background: var(--amber-dim); color: var(--amber); }
+.t-teal { background: var(--teal-dim); color: var(--teal); }
+.t-purple { background: var(--purple-dim); color: var(--purple); }
+
+/* ── Callout ── */
+.callout {
+  background: var(--bg2); border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 18px 22px; margin-top: 20px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.callout-icon { font-size: 18px; flex-shrink: 0; padding-top: 1px; }
+.callout p { font-size: 13.5px; color: var(--text2); line-height: 1.65; }
+.callout p strong { color: var(--text); }
+
+/* ── Divider ── */
+.divider {
+  display: flex; align-items: center; gap: 16px;
+  margin: 48px 0;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--border);
+}
+.divider span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text3); letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+/* ── Evidence level ── */
+.ev { display: inline-flex; gap: 2px; align-items: center; }
+.ev-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border2);
+}
+.ev-dot.fill { background: var(--green); }
+
+@media (max-width: 600px) {
+  .sb-body { grid-template-columns: 1fr; }
+  .pipeline { grid-template-columns: 1fr 1fr; }
+  .contra-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══ MASTHEAD ══ -->
+<div class="masthead">
+  <div class="masthead-label">
+    <div class="label-tag">课题总结</div>
+    <div class="label-tag amber">Edison × 自有数据</div>
+  </div>
+  <div class="masthead-title">
+    <h1>ALOX5 作为 HFpEF 衰老驱动<br>炎症放大器的研究总结</h1>
+    <div class="subtitle">核心假说 · 逐句拆解 · 文献支撑 · 研究计划 · 2025</div>
+  </div>
+</div>
+
+<!-- ══ SECTION 1: 四阶段框架速览 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">01 /</span>
+    <div class="sec-title">病生理框架：<span>四阶段级联</span></div>
+  </div>
+
+  <div class="pipeline">
+    <div class="phase-card p1">
+      <div class="phase-num">阶段一</div>
+      <div class="phase-name">代谢病因</div>
+      <div class="phase-desc">肥胖/IR/高血压 → cPLA2激活 → ↑AA释放 → ALOX5底物预装载</div>
+    </div>
+    <div class="phase-card p2">
+      <div class="phase-num">阶段二</div>
+      <div class="phase-name">炎症衰老</div>
+      <div class="phase-desc">衰老SASP + 线粒体ROS → ALOX5通路诱导 → "Oxylipin SASP"放大器</div>
+    </div>
+    <div class="phase-card p3">
+      <div class="phase-num">阶段三</div>
+      <div class="phase-name">炎症放大</div>
+      <div class="phase-desc">LTB4/5-HETE → 纤维化臂 + 内皮臂 · 跨细胞白三烯放大网络</div>
+    </div>
+    <div class="phase-card p4">
+      <div class="phase-num">阶段四</div>
+      <div class="phase-name">代谢重编程</div>
+      <div class="phase-desc">NF-κB→线粒体损伤→FAO↓/糖酵解↑ → 膜AA释放↑ → 反馈阶段一</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 2: 核心假说逐句拆解 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">02 /</span>
+    <div class="sec-title">核心假说：<span>逐句拆解与文献支撑</span></div>
+  </div>
+
+  <div class="hypo-card">
+    <div class="card-label">Core Hypothesis · 完整版</div>
+    <p>ALOX5 不是经典巨噬细胞白三烯通路的心脏版，而是一个<strong>衰老驱动的炎症放大器</strong>，在代谢应激（肥胖/IR/高血压）触发 cPLA2/iPLA2 激活、花生四烯酸（AA）底物超载之后，由心脏驻留非免疫细胞（心肌细胞、内皮细胞、成纤维细胞）中的衰老程序和线粒体氧化应激所诱导，通过 LTB4–BLT1 轴向成纤维细胞和内皮细胞发出炎性级联信号，桥接心肌结构重塑（纤维化/僵硬）与能量代谢失败（FAO↓/线粒体损伤），并经代谢重编程的膜AA释放形成正反馈闭环——这一机制在单细胞转录组学中不可见，但可通过 5-LOX 模块评分、空间蛋白质组和 ALOX5-KO 表型救援所揭示。</p>
+  </div>
+
+  <!-- 句1 -->
+  <div class="sentence-block blue">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句①</span>
+        <div class="sb-sentence">ALOX5 不是经典巨噬细胞白三烯通路的心脏版</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">逻辑支撑</div>
+        <ul>
+          <li>经典白三烯生物学以中性粒/巨噬细胞为高产核心，BLT1驱动趋化和炎症扩增是主范式</li>
+          <li>你的 scRNA-seq 显示：HFpEF 小鼠<strong>巨噬细胞/单核细胞中 ALOX5 无显著上调</strong></li>
+          <li>单凭巨噬细胞范式无法解释 KO 表型救援</li>
+          <li>驻留心脏细胞（CM/EC）ALOX5 的功能模式完全不同：<em>应激-反应程序</em>而非趋化程序</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">文献支撑（Edison Q1/Q4）</div>
+        <ul>
+          <li><strong>Liu & Ai 2025</strong>（LOX综述）：心肌细胞在缺氧/ROS下上调 ALOX5/5-LO 活性，5-LO 抑制减少氧化应激</li>
+          <li><strong>心肌细胞</strong>是最强证据支持的非免疫 ALOX5 来源（[1.1],[8.1]）</li>
+          <li>内皮细胞缺乏内在 5-LO 表达，但表达 LTA4 水解酶，<em>作为跨细胞转化放大层</em></li>
+          <li>scRNA 漏检原因：低丰度转录本 + 解离偏倚 + 空间限制（见句⑤）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句2 -->
+  <div class="sentence-block purple">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句②</span>
+        <div class="sb-sentence">而是一个衰老驱动的炎症放大器</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">逻辑支撑</div>
+        <ul>
+          <li>ALOX5 不是 SASP 组分（初始分泌因子），而是 <strong>SASP 放大器</strong>：衰老诱导 ALOX5 表达，ALOX5 产生白三烯反馈促进氧化损伤和继发衰老</li>
+          <li>机制：DNA损伤/端粒缩短 → p38-MAPK/NF-κB → ALOX5 转录上调 + PLA2 激活 → 白三烯/5-HETE → ROS → 加速 SASP 分泌</li>
+          <li>衰老驱动是阶段二到阶段三的桥梁，解释为何代谢应激之后才出现持续性炎症</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">文献支撑（Edison Q1/Q7）</div>
+        <ul>
+          <li><strong>Wiley et al., Cell Metabolism 2021</strong>：衰老细胞（含 MiDAS）转录上调白三烯合成基因包括 <em>ALOX5、ALOX5AP、LTC4S、LTA4H</em></li>
+          <li><strong>Wiley & Campisi, Nature Metabolism 2021</strong>：PLA2 位于 ALOX5/COX2 上游，构成"Oxylipin SASP"脂质介质臂</li>
+          <li>LTC4 作为白三烯 C4 可介导 RAS 诱导的氧化 DNA 损伤（NOX4 核转位），形成衰老自强化环路（[4.1]）</li>
+          <li>ALOX5 经 p53 通路与衰老相连（[4.1]）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句3 -->
+  <div class="sentence-block blue">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句③</span>
+        <div class="sb-sentence">在代谢应激触发 cPLA2/iPLA2 激活、AA 底物超载之后</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">逻辑支撑（阶段一触发器）</div>
+        <ul>
+          <li>代谢应激（肥胖→异位脂肪/高血压→神经激素/IR→FOXO1解抑制）通过三条路径增加心脏 AA</li>
+          <li><strong>cPLA2α</strong>：AA偏好型，MAPK/ERK磷酸化激活，转位至内质网/脂滴膜释放AA</li>
+          <li><strong>iPLA2β</strong>：Ca²⁺非依赖，磷脂重塑和线粒体来源AA</li>
+          <li>IR → FOXO1 解抑制 → 直接增强 5-LO/LTB4 信号轴（绕过胰岛素对该通路的抑制）</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">文献支撑（Edison Q1）</div>
+        <ul>
+          <li><strong>Bahrami et al. 2025</strong>（[1.1],[1.2]）：IR → FOXO1 解抑制 → 5-LO/LTB4 信号上调的直接机制证据</li>
+          <li>LTB4 本身与循环 FFA 升高和脂肪细胞肥大形成强化环路（[1.5]）</li>
+          <li>脂滴是动态 AA 储库：cPLA2α 转位至脂滴相关膜使 AA 释放靠近下游氧化酶（[2.1]）</li>
+          <li>高血压相关 Ca²⁺/ROS 压力激活 cPLA2 作为 AA 通量的融合门控（[1.1],[2.1]）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句4 -->
+  <div class="sentence-block purple">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句④</span>
+        <div class="sb-sentence">由心脏驻留非免疫细胞中的衰老程序和线粒体氧化应激所诱导</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">逻辑支撑</div>
+        <ul>
+          <li>驻留细胞层级：<strong>心肌细胞</strong>（最强证据）> 内皮细胞（跨细胞转化者）> 成纤维细胞/周细胞（生态位限制）</li>
+          <li>线粒体 ROS 通过两条路径增强 ALOX5：① p38→PLA2活化 ② 直接氧化 AA（心磷脂衍生 oxygenated AA）</li>
+          <li>MiDAS（线粒体功能障碍相关衰老）是衰老+氧化应激的交汇节点，显著上调脂质介质模块</li>
+          <li>内皮细胞即使 ALOX5-low 也能接受外源 LTA4 经 LTA4H 转化为 LTB4（跨细胞生物合成）</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">文献支撑（Edison Q1/Q4）</div>
+        <ul>
+          <li>p38 依赖的 PLA2 活性在衰老中增加游离 PUFA 池，为 oxylipin/白三烯生成提供底物（[5.1]）</li>
+          <li>线粒体功能障碍提供 ROS 和促炎性 SASP 编程，与 PLA2 激活协同（[5.3]）</li>
+          <li><strong>Liu & Ai 2025</strong>（[8.1]）：内皮细胞通过 BLT1/BLT2/CysLT 受体响应 LTB4，促 MCP-1 释放和管形成</li>
+          <li>CysLT2 介导血管通透性增加和再灌注损伤（[6.2]）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句5 -->
+  <div class="sentence-block coral">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句⑤</span>
+        <div class="sb-sentence">通过 LTB4–BLT1 轴向成纤维细胞和内皮细胞发出炎性级联信号，桥接心肌结构重塑与能量代谢失败</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">纤维化臂逻辑（Edison Q2）</div>
+        <ul>
+          <li><strong>BLT1→PI3K/Akt/mTOR</strong>：系统性硬皮病模型中 LTB4-BLT1 促进 αSMA/I型胶原/肌成纤维化，BLT1 拮抗逆转（[3.1],[3.2]）</li>
+          <li><strong>BLT1→p38 MAPK</strong>：肺动脉成纤维细胞中 LTB4 经 BLT1/p38 促增殖、迁移和收缩表型（[4.1]）</li>
+          <li>LTB4→巨噬细胞 TGF-β↑→成纤维细胞激活（免疫-间质接力），BLT1 缺陷减少组织胶原（[5.1],[5.2]）</li>
+          <li><strong>Lipoxin A4 反制臂</strong>：抑制 αSMA/TGF-β1 依赖胶原分泌，干扰 SMAD2/3 核转位（[6.1]）</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">内皮臂逻辑（Edison Q2）</div>
+        <ul>
+          <li>内皮 eNOS 解偶联：LTB4 经 BLT2/CysLT → Sphk1-S1P 通路 → eNOS 磷酸化↓ → NO↓</li>
+          <li>Zileuton 抑制 VEGF 诱导的 VCAM-1/ICAM-1 表达，降低 NO 生成（[11.1],[11.2]）</li>
+          <li><strong>三层接力放大机制</strong>：① 衰老间质细胞脂质SASP → ② 低氧巨噬细胞 ALOX5-SASP 环路 → ③ 内皮 sEV 携带 LTA4H 激活中性粒细胞产生更多 LTB4（[12.1]）</li>
+          <li>糖萼降解（heparanase 活化）直接耦合至心脏微循环障碍，是 HFpEF 核心概念（实验空白，需填补）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句6 -->
+  <div class="sentence-block amber">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句⑥</span>
+        <div class="sb-sentence">并经代谢重编程的膜 AA 释放形成正反馈闭环</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">代谢重编程逻辑（Edison Q3）</div>
+        <ul>
+          <li>LTB4/BLT1→NF-κB→<strong>线粒体损伤</strong>（复合体 I/II↓，OPA1融合蛋白↓），BLT1拮抗恢复 AMPK/ACC/PGC1α（[1.2],[1.3]）</li>
+          <li>NF-κB → PDK4↑ → PDH 磷酸化↑ → 丙酮酸进入 TCA 受阻 → 糖酵解依赖性 ATP，HFpEF 心脏模式（[2.1],[2.2]）</li>
+          <li>HF 重塑综述：PGC1α↓/PPARα↓ → FAO 基因下调，白三烯驱动炎症与这一重塑轨迹协同（[6.1]）</li>
+          <li>HFpEF 模型酮体氧化↓约50%，炎症 HFpEF 模型 BDH1 表达受抑制（[7.1]）</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">正反馈闭环逻辑（Edison Q3）</div>
+        <ul>
+          <li><strong>关键反馈节点</strong>：生物能量应激 → 线粒体 PLA2 激活 → 从氧化心磷脂释放更多 AA → 回到 ALOX5 底物池</li>
+          <li>AA 本身可去极化线粒体、抑制呼吸（与 PLA2 协同，[1.1],[4.1]）</li>
+          <li>这个闭环解释：为什么 ALOX5-KO 能"全局性"改善 HFpEF 表型——即使巨噬细胞 mRNA 未变，打断闭环即可阻断多阶段级联</li>
+          <li><strong>ω-3 机会</strong>：EPA/DHA 与 AA 竞争 ALOX5 底物 → 生成 5-HEPE/Resolvin E 系列（炎症分辨率产物）而非促炎LTB4</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 句7 -->
+  <div class="sentence-block teal">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">句⑦</span>
+        <div class="sb-sentence">这一机制在单细胞转录组学中不可见，但可通过 5-LOX 模块评分和 ALOX5-KO 表型救援所揭示</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">三种 scRNA 漏检模式（Edison Q4）</div>
+        <ul>
+          <li><strong>Dropout/低丰度偏倚</strong>：标准 scRNA 流程的捕获效率和 HVG 选择系统性降低低拷贝数转录本（如稀有状态 Alox5）的灵敏度（[4.1],[4.2]）</li>
+          <li><strong>解离偏倚（ECM嵌入细胞丢失）</strong>：功能性 ALOX5 池若空间限制于纤维化/血管周围生态位，酶解解离步骤将丢失这些细胞（[4.3]）</li>
+          <li><strong>空间稀释效应</strong>：信号局限于微域（纤维化生态位、血管周袖），bulk scRNA 采样平均化信号（[4.4]）</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">翻译后激活机制（Edison Q4）</div>
+        <ul>
+          <li>5-LO 活性强依赖 <em>Ca²⁺、ATP、氧化还原状态、磷酸化</em>以及向核膜的刺激驱动转位（[6.1],[7.1]）</li>
+          <li>白三烯生物合成需在核膜上与 FLAP 和 cPLA2 组装，FLAP 可创建高局部底物浓度（[3.2],[7.2]）</li>
+          <li>激活后的短期 ALOX5 增效不需要新蛋白合成（中性粒细胞模型中的先例）→ 活性-mRNA 解偶联存在先例（[2.1]）</li>
+          <li><strong>定量推算</strong>：心脏仅需 ~10³–10⁵ 个功能性 ALOX5⁺ 细胞即可在间质微域产生 100 pM–1 nM 的 LTB4 局部浓度，驱动病理（[10.1],[8.1]）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DIVIDER ══ -->
+<div class="divider"><span>矛盾结果的系统性解释</span></div>
+
+<!-- ══ SECTION 3: 矛盾解释 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">03 /</span>
+    <div class="sec-title">关键矛盾：<span>巨噬细胞 scRNA 阴性 vs KO 表型救援</span></div>
+  </div>
+
+  <div class="contradiction">
+    <div class="c-label">矛盾陈述</div>
+    <div class="c-q">scRNA-seq 显示 HFpEF 小鼠巨噬细胞/单核细胞中 ALOX5 无显著上调，但 ALOX5-KO 显著改善 HFpEF 表型。</div>
+    <div class="contra-grid">
+      <div class="contra-item">
+        <div class="ci-label">为什么不是漏洞</div>
+        <p>功能性 ALOX5 库<strong>不是由 mRNA 丰度驱动，而是由翻译后激活 + FLAP 可用性 + 跨细胞生物合成</strong>决定的，这些均不反映在 mRNA 折变化中。</p>
+      </div>
+      <div class="contra-item">
+        <div class="ci-label">为什么是发现</div>
+        <p>阴性结果将你推向更原创方向：<strong>心肌细胞/衰老驻留细胞</strong>是功能性主导 ALOX5 来源，区别于经典巨噬细胞范式，这正是创新点所在。</p>
+      </div>
+      <div class="contra-item">
+        <div class="ci-label">四阶段框架如何整合</div>
+        <p>慢性白三烯信号偏置炎症分辨率平衡，重塑代谢轨迹；因此 <strong>全身性 Alox5-KO</strong> 的收益即使巨噬细胞 Alox5 mRNA 在采样时间点/区室未被检出，也能产生全局收益。</p>
+      </div>
+      <div class="contra-item">
+        <div class="ci-label">解决方案</div>
+        <p>用<strong>空间蛋白质组（IHC/质谱成像）</strong>靶向 5-LO、FLAP、phospho-5-LO；聚焦于心肌细胞和成纤维细胞区室；使用 5-LOX <em>模块评分</em>而非单基因。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DIVIDER ══ -->
+<div class="divider"><span>研究计划</span></div>
+
+<!-- ══ SECTION 4: 研究计划 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">04 /</span>
+    <div class="sec-title">执行计划：<span>分阶段推进路线</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>优先级</th>
+        <th>任务</th>
+        <th>具体操作</th>
+        <th>核心工具</th>
+        <th>预期产出</th>
+        <th>对应假说句</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="priority-tag p-now">立即启动</span></td>
+        <td><strong>5-LOX 模块评分</strong></td>
+        <td>用 ALOX5+ALOX5AP+S100A8/A9+LTA4H+LTC4S+PTGES 构建基因集，替代单 ALOX5 基因，在全细胞类型中评分</td>
+        <td><span class="mini-tag t-blue">AddModuleScore</span><span class="mini-tag t-blue">AUCell</span></td>
+        <td>确认哪类细胞真正富集 5-LOX 激活程序；奠定后续所有分析的细胞身份</td>
+        <td>句① ⑦</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-now">立即启动</span></td>
+        <td><strong>衰老 × ALOX5 共定位</strong></td>
+        <td>SenMayo 基因集评分与 5-LOX 模块评分交叉；识别"双高"细胞亚群；SCENIC 分析驱动 TF（NF-κB/AP-1/p38下游）</td>
+        <td><span class="mini-tag t-purple">SenMayo</span><span class="mini-tag t-purple">pySCENIC</span></td>
+        <td>鉴定"衰老-ALOX5高"亚群；建立衰老→ALOX5 调控轴的转录证据</td>
+        <td>句② ④</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q2">第二批</span></td>
+        <td><strong>成纤维细胞轨迹 + 通讯</strong></td>
+        <td>CF 亚群细分 → Monocle3 轨迹；ALOX5 模块沿 pseudotime 动态；CellChat 重建 LTB4-BLT1 CF 自分泌环路和 巨噬→CF 信号轴</td>
+        <td><span class="mini-tag t-coral">Monocle3</span><span class="mini-tag t-coral">scVelo</span><span class="mini-tag t-coral">CellChat</span></td>
+        <td>ALOX5 在 CF 激活轨迹节点的动态；LTB4-BLT1 轴在 HFpEF CF 中的细胞通讯证据</td>
+        <td>句⑤</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q2">第二批</span></td>
+        <td><strong>代谢状态推断</strong></td>
+        <td>scFEA/Compass 代谢通量评分；ALOX5 模块与 FAO 评分相关性；PPARα通路评分</td>
+        <td><span class="mini-tag t-amber">scFEA</span><span class="mini-tag t-amber">Compass</span></td>
+        <td>ALOX5 高细胞的 FAO↓/糖酵解↑代谢状态；代谢重编程的单细胞证据</td>
+        <td>句⑥</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q2">第二批</span></td>
+        <td><strong>人鼠跨物种印证</strong></td>
+        <td>biomaRt ortholog 映射 → 人鼠 DEG 重叠 → Harmony 整合 → ALOX5-hi 细胞跨物种聚集验证</td>
+        <td><span class="mini-tag t-teal">biomaRt</span><span class="mini-tag t-teal">Harmony</span></td>
+        <td>保守 ALOX5 下游效应基因集；跨物种 UMAP 聚集图（最强保守性证据）</td>
+        <td>句① ③</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q3">第三批</span></td>
+        <td><strong>空间转录组/蛋白质组验证</strong></td>
+        <td>IHC：5-LO、FLAP、phospho-5-LO 蛋白定位于心肌纤维化区；空间数据（公开）RCTD/Cell2location 映射 ALOX5-hi 细胞到纤维化生态位</td>
+        <td><span class="mini-tag t-coral">IHC</span><span class="mini-tag t-coral">RCTD</span><span class="mini-tag t-coral">Cell2location</span></td>
+        <td>蛋白层面证实 scRNA 的漏检假说；空间定位将假说视觉化</td>
+        <td>句④ ⑦</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q3">第三批</span></td>
+        <td><strong>体外机制验证</strong></td>
+        <td>原代 CF 加 LTB4 → αSMA/COL1A1/p-SMAD3；WT vs BLT1 拮抗剂组；心脏内皮细胞加 LTB4 → eNOS/ICAM-1/糖萼完整性</td>
+        <td><span class="mini-tag t-blue">原代细胞培养</span><span class="mini-tag t-blue">WB/IF</span></td>
+        <td>LTB4-BLT1 直接激活 CF 和内皮的因果证据</td>
+        <td>句⑤</td>
+      </tr>
+      <tr>
+        <td><span class="priority-tag p-q4">第四批</span></td>
+        <td><strong>HFpEF 动物模型验证</strong></td>
+        <td>HFD+L-NAME 或衰老 HFpEF 模型；WT vs Alox5-/- vs Zileuton 处理；心肌胶原 / 舒张功能 / 线粒体呼吸 / 心肌脂质组</td>
+        <td><span class="mini-tag t-amber">小鼠模型</span><span class="mini-tag t-amber">超声心动</span><span class="mini-tag t-amber">LC-MS脂质组</span></td>
+        <td>KO/药物干预后表型救援的机制解析；脂质组LTB4/5-HETE/lipoxin谱</td>
+        <td>全部</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="callout-icon">⚡</div>
+    <p><strong>最关键的第一步</strong>：在两周内完成 5-LOX 模块评分（任务1）。若在心肌细胞或衰老相关细胞中发现评分显著富集，整个假说的细胞身份就确立了，后续所有实验方向就此锁定。这一步零额外实验成本，完全基于已有数据。</p>
+  </div>
+</div>
+
+<!-- ══ SECTION 5: 成药靶点快速矩阵 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">05 /</span>
+    <div class="sec-title">成药靶点：<span>四阶段矩阵（简表）</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>阶段</th>
+        <th>核心靶点</th>
+        <th>代表药物</th>
+        <th>心脏证据强度</th>
+        <th>策略备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="mini-tag t-blue">阶段一</span><br>代谢病因</td>
+        <td>cPLA2α · FABP4 · LD 蛋白</td>
+        <td>AVX235（cPLA2抑制）<br>GLP-1RA / SGLT2i（上游）</td>
+        <td><div class="ev"><div class="ev-dot fill"></div><div class="ev-dot fill"></div><div class="ev-dot"></div><div class="ev-dot"></div></div></td>
+        <td>SGLT2i 减少心脏炎症，可能通过 AA 通量降低，但直接证据尚缺</td>
+      </tr>
+      <tr>
+        <td><span class="mini-tag t-purple">阶段二</span><br>炎症衰老</td>
+        <td>衰老-ALOX5轴 · NF-κB</td>
+        <td>Dasatinib+Quercetin（senolytic）<br>Navitoclax</td>
+        <td><div class="ev"><div class="ev-dot fill"></div><div class="ev-dot"></div><div class="ev-dot"></div><div class="ev-dot"></div></div></td>
+        <td>Senolytic 是否降低心脏白三烯水平尚无直接数据，是重要空白；原创研究机会</td>
+      </tr>
+      <tr>
+        <td><span class="mini-tag t-coral">阶段三</span><br>炎症放大</td>
+        <td>ALOX5 · FLAP · LTB4–BLT1</td>
+        <td><strong>Zileuton</strong>（ALOX5抑制）<br>FLAP抑制：Veliflapon<br>BLT1拮抗：BIIL-260</td>
+        <td><div class="ev"><div class="ev-dot fill"></div><div class="ev-dot fill"></div><div class="ev-dot fill"></div><div class="ev-dot"></div></div></td>
+        <td><strong>最强成药节点</strong>；Zileuton 已有内皮细胞证据；KO 数据直接支持；应作为核心干预工具</td>
+      </tr>
+      <tr>
+        <td><span class="mini-tag t-amber">阶段四</span><br>代谢重编程</td>
+        <td>PDK4 · PPARα · BDH1</td>
+        <td>PDK4抑制：PS10<br>PPARα激动：Fenofibrate<br>ω-3（EPA/DHA）竞争底物</td>
+        <td><div class="ev"><div class="ev-dot fill"></div><div class="ev-dot fill"></div><div class="ev-dot"></div><div class="ev-dot"></div></div></td>
+        <td>ω-3 策略最为优雅：与 AA 竞争 ALOX5 底物，同时产生 Resolvin 促分辨率；ALOX5抑制+ω-3 有协同潜力</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ SECTION 6: 科学假说声明 ══ -->
+<div class="section">
+  <div class="section-header">
+    <span class="sec-num">06 /</span>
+    <div class="sec-title">科学假说声明：<span>可检验格式</span></div>
+  </div>
+
+  <div class="sentence-block teal">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">H1</span>
+        <div class="sb-sentence">主假说：成纤维细胞方向</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">假说陈述</div>
+        <ul>
+          <li>在 HFpEF 心脏中，<strong>代谢应激和衰老驱动的 ALOX5 激活</strong>发生于心脏驻留成纤维细胞中，通过 LTB4–BLT1→PI3K/Akt/SMAD3 轴推动肌成纤维细胞分化和 ECM 沉积，加剧心肌僵硬和舒张功能障碍</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">可检验预测</div>
+        <ul>
+          <li>5-LOX 模块评分在 CF 中与纤维化基因集正相关</li>
+          <li>5-LOX 模块高分 CF 沿 pseudotime 富集于激活末端</li>
+          <li>Zileuton 处理 HFpEF 小鼠减少心肌胶原面积和 CF αSMA⁺ 细胞比例</li>
+          <li>LTB4 直接激活原代 CF，BLT1 拮抗剂阻断该效应</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="sentence-block teal">
+    <div class="sb-header">
+      <div class="sb-accent"></div>
+      <div class="sb-title-row">
+        <span class="sb-num">H2</span>
+        <div class="sb-sentence">亚假说：衰老-ALOX5 正反馈环</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-col">
+        <div class="sb-col-title">假说陈述</div>
+        <ul>
+          <li>衰老心脏细胞的 SASP 含白三烯作为功能性脂质介质组分，反向激活 ALOX5 表达，形成衰老→ALOX5→白三烯→加速衰老的正反馈环路，维持 HFpEF 的慢性低度炎症</li>
+        </ul>
+      </div>
+      <div class="sb-col">
+        <div class="sb-col-title">可检验预测</div>
+        <ul>
+          <li>SenMayo 评分高的细胞 5-LOX 模块评分亦高（单细胞相关）</li>
+          <li>衰老 CF 条件培养基诱导幼稚 CF 的 ALOX5 表达，ALOX5 抑制阻断此效应</li>
+          <li>Senolytic 处理 HFpEF 小鼠后心肌 LTB4 水平下降</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">🎯</div>
+    <p>两个假说可在同一数据集中同步检验：H1 走"结构重塑"终点，H2 走"衰老炎症维持"终点，共享 5-LOX 模块评分 + SenMayo 评分的双维度分析框架，形成一篇文章的<strong>双线叙事结构</strong>。</p>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+</body>
+</html>
